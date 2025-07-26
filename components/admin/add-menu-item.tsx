@@ -70,8 +70,6 @@ export default function AddMenuItem({ onClose, onSuccess }: AddMenuItemProps) {
         setLoading(false)
         return
       }
-
-      // Extra validation and debug logging
       if (isNaN(Number.parseFloat(formData.price))) {
         setError("Price must be a valid number")
         setLoading(false)
@@ -82,28 +80,33 @@ export default function AddMenuItem({ onClose, onSuccess }: AddMenuItemProps) {
         setLoading(false)
         return
       }
+      // Force isAvailable to true for all created items
       const menuItem = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: Number.parseFloat(formData.price),
         category: formData.category,
         imageUrl: formData.imageUrl,
-        isAvailable: formData.isAvailable,
+        isAvailable: true,
       }
       console.log("[DEBUG] Submitting menu item:", menuItem)
       try {
         const result = await addMenuItem(menuItem)
         if (result) {
-        console.log("Menu item added successfully with ID:", result)
-        onSuccess()
-        onClose()
-      } else {
-        setError("Failed to add menu item. Please try again.")
+          console.log("Menu item added successfully with ID:", result)
+          onSuccess()
+          onClose()
+        } else {
+          setError("Failed to add menu item. Please try again.")
+        }
+      } catch (error: any) {
+        console.error("[DEBUG] Error adding menu item:", error)
+        setError((error && error.message) || JSON.stringify(error) || "An error occurred while adding the menu item")
+      } finally {
+        setLoading(false)
       }
-    } catch (error: any) {
-      console.error("[DEBUG] Error adding menu item:", error)
-      setError((error && error.message) || JSON.stringify(error) || "An error occurred while adding the menu item")
-    } finally {
+    } catch (err) {
+      setError("Unexpected error occurred.")
       setLoading(false)
     }
   }
@@ -265,6 +268,12 @@ export default function AddMenuItem({ onClose, onSuccess }: AddMenuItemProps) {
                 <span className="text-sm text-gray-500 font-roboto">
                   {formData.isAvailable ? "Visible to customers" : "Hidden from customers"}
                 </span>
+                {/* Always visible warning */}
+                {!formData.isAvailable && (
+                  <span className="text-xs text-orange-600 ml-2">
+                    Note: Menu items are always visible to users after adding.
+                  </span>
+                )}
               </div>
 
               {/* Preview */}
