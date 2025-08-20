@@ -37,18 +37,34 @@ export default function LandingPage() {
   const [cart, setCart] = useState<MenuItem[]>([])
   const [showProfile, setShowProfile] = useState(false)
 
+  // =================================================================
+  // ===================== APPLIED FIX IS HERE =======================
+  // =================================================================
   useEffect(() => {
-    fetchRestaurants()
+    // Explicitly set loading to true when the effect runs.
+    setLoading(true);
 
-    // Set up real-time subscription for available menu items
+    // Fetch restaurants (this can happen in the background).
+    fetchRestaurants();
+
+    // Set up the real-time subscription for available menu items.
+    // The callback will run once with the initial data (even if it's empty)
+    // and then again whenever the data changes.
     const unsubscribe = subscribeToAvailableMenuItems((items) => {
-      console.log("Available menu items updated:", items)
-      setFeaturedItems(items)
-      setLoading(false)
-    })
+      console.log("Available menu items updated:", items);
+      setFeaturedItems(items);
+      
+      // Now it's safe to turn off the loader because we have received
+      // a response from the database (either with items or an empty list).
+      setLoading(false);
+    });
 
-    return () => unsubscribe()
-  }, [])
+    // Clean up the subscription when the component unmounts.
+    return () => unsubscribe();
+  }, []); // The empty array ensures this effect runs only once.
+  // =================================================================
+  // ====================== END OF APPLIED FIX =======================
+  // =================================================================
 
   const fetchRestaurants = async () => {
     try {
